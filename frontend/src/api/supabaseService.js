@@ -132,18 +132,16 @@ export async function salvarReporte(reporte) {
     status:    'aberto',
   };
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('incidentes')
-    .insert([payload])
-    .select()
-    .single();
+    .insert([payload]);
 
   if (error) {
     console.error('Erro ao salvar reporte:', error.message);
     return { sucesso: false, erro: error.message };
   }
 
-  return { sucesso: true, dados: data };
+  return { sucesso: true };
 }
 
 // ══════════════════════════════════════════════════════

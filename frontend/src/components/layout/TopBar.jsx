@@ -1,10 +1,27 @@
 // src/components/layout/TopBar.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import { supabase } from '../../api/supabaseClient';
 
-export default function TopBar() {
+export default function TopBar({ usuario }) {
   const [menuAberto, setMenuAberto] = useState(false);
+  const [nomeUsuario, setNomeUsuario] = useState('');
+
+  useEffect(() => {
+    if (!usuario) { setNomeUsuario(''); return; }
+
+    supabase
+      .from('profiles')
+      .select('nome_completo')
+      .eq('id', usuario.id)
+      .single()
+      .then(({ data }) => {
+        const primeiroNome = data?.nome_completo?.split(' ')[0]
+          ?? usuario.email?.split('@')[0]
+          ?? '';
+        setNomeUsuario(primeiroNome);
+      });
+  }, [usuario]);
 
   return (
     <>
@@ -15,11 +32,10 @@ export default function TopBar() {
 
         <span style={styles.logo}>Conecta SH</span>
 
-        <button style={styles.botaoIcone} onClick={async () => {
+        <button style={styles.botaoUsuario} onClick={async () => {
           await supabase.auth.signOut();
-          // o onAuthStateChange no App.js já lida com o resto
         }}>
-          👤
+          {nomeUsuario || '👤'}
         </button>
       </header>
 
@@ -54,5 +70,18 @@ const styles = {
     fontSize: 22,
     cursor: 'pointer',
     padding: 4,
+  },
+  botaoUsuario: {
+    background: 'none',
+    border: 'none',
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    padding: '4px 8px',
+    maxWidth: 120,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
 };
