@@ -69,7 +69,7 @@ export default function ReportarPage() {
     if (resultado.sucesso) {
       setEnviado(true);
     } else {
-      setErro('Erro ao enviar. Tente novamente.');
+      setErro(resultado.erro ?? 'Erro ao enviar. Tente novamente.');
     }
   }
 

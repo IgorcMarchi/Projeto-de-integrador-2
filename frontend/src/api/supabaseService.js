@@ -58,12 +58,7 @@ export async function buscarEventos() {
 export async function buscarNotificacoes() {
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) {
-    console.warn('Nenhum usuário autenticado');
-    return [];
-  }
-
-  console.log('Buscando notificações para user_id:', user.id);
+  if (!user) return [];
 
   const { data, error } = await supabase
     .from('notificacoes')
@@ -73,13 +68,10 @@ export async function buscarNotificacoes() {
     .limit(20);
 
   if (error) {
-    console.error('Erro ao buscar notificações:', error);
-    console.error('Detalhes do erro:', error.message, error.code, error.details);
+    console.error('Erro ao buscar notificações:', error.message);
     return [];
   }
-
-  console.log('Notificações encontradas:', data?.length || 0);
-  return data || [];
+  return data;
 }
 
 /**
@@ -140,18 +132,16 @@ export async function salvarReporte(reporte) {
     status:    'aberto',
   };
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('incidentes')
-    .insert([payload])
-    .select()
-    .single();
+    .insert([payload]);
 
   if (error) {
     console.error('Erro ao salvar reporte:', error.message);
     return { sucesso: false, erro: error.message };
   }
 
-  return { sucesso: true, dados: data };
+  return { sucesso: true };
 }
 
 // ══════════════════════════════════════════════════════

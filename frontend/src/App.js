@@ -48,7 +48,7 @@ export default function App() {
         {/* Todas as outras rotas com o layout normal */}
         <Route path="/*" element={
           <>
-            <TopBar />
+            <TopBar usuario={usuario} />
             <Routes>
               <Route path="/"         element={<HomePage />} />
               <Route path="/eventos"  element={<EventosPage />} />
