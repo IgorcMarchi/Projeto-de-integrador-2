@@ -58,7 +58,12 @@ export async function buscarEventos() {
 export async function buscarNotificacoes() {
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) return [];
+  if (!user) {
+    console.warn('Nenhum usuário autenticado');
+    return [];
+  }
+
+  console.log('Buscando notificações para user_id:', user.id);
 
   const { data, error } = await supabase
     .from('notificacoes')
@@ -68,10 +73,13 @@ export async function buscarNotificacoes() {
     .limit(20);
 
   if (error) {
-    console.error('Erro ao buscar notificações:', error.message);
+    console.error('Erro ao buscar notificações:', error);
+    console.error('Detalhes do erro:', error.message, error.code, error.details);
     return [];
   }
-  return data;
+
+  console.log('Notificações encontradas:', data?.length || 0);
+  return data || [];
 }
 
 /**
