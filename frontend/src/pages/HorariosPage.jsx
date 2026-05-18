@@ -10,35 +10,47 @@ import { buscarHorarios } from '../api/supabaseService';
 import { useFetch } from '../hooks/useFetch';
 
 // ── Dados de fallback (MVP offline) ──────────────────────
-// Estrutura espelhando o banco: servico, dia_semana, horario, observacao
+// Estrutura espelhando o banco: servico, dia_semana, horario_inicio, horario_fim, observacao
 const HORARIOS_FALLBACK = [
   {
-    id: 1,
+    id: 15,
+    servico: 'Atendimento Turístico (CAT)',
+    dia_semana: 'Quarta a Domingo',
+    horario_inicio: '09:00:00',
+    horario_fim: '18:00:00',
+    observacao: 'Atendimento presencial no Centro de Atendimento ao Turista',
+  },
+  {
+    id: 16,
     servico: 'Ônibus: Centro -> Prainha',
     dia_semana: 'Sábado e Domingo',
-    horario: '09:00:00',
-    observacao: 'Saída da rodoviária',
+    horario_inicio: '09:00:00',
+    horario_fim: '10:00:00',
+    observacao: 'Saídas periódicas da rodoviária',
   },
   {
-    id: 2,
+    id: 17,
     servico: 'Ônibus: Prainha -> Centro',
     dia_semana: 'Sábado e Domingo',
-    horario: '18:30:00',
-    observacao: 'Ponto próximo aos quiosques',
+    horario_inicio: '18:30:00',
+    horario_fim: '19:30:00',
+    observacao: 'Retorno dos banhistas (ponto próximo aos quiosques)',
   },
   {
-    id: 3,
+    id: 18,
     servico: 'Coleta de Lixo Seletiva',
     dia_semana: 'Segunda, Quarta e Sexta',
-    horario: '07:30:00',
-    observacao: 'Lixo reciclável',
+    horario_inicio: '07:30:00',
+    horario_fim: '11:30:00',
+    observacao: 'Passagem do caminhão de lixo reciclável',
   },
   {
-    id: 4,
+    id: 19,
     servico: 'Coleta de Lixo Orgânico',
     dia_semana: 'Terça e Quinta',
-    horario: '08:00:00',
-    observacao: 'Resíduos comuns',
+    horario_inicio: '08:00:00',
+    horario_fim: '12:00:00',
+    observacao: 'Passagem do caminhão de resíduos comuns',
   },
 ];
 
@@ -51,11 +63,15 @@ function getIcone(servico = '') {
   return '📋';
 }
 
-// ── Formata horário de "HH:MM:SS" para "HH:MM" ───────────
-function formatarHorario(horario = '') {
-  if (!horario) return '';
-  const partes = horario.split(':');
-  return `${partes[0]}:${partes[1]}`;
+// ── Formata intervalo de horário: "HH:MM – HH:MM" ────────
+function formatarIntervalo(inicio = '', fim = '') {
+  const fmt = (t) => {
+    if (!t) return '';
+    const partes = t.split(':');
+    return `${partes[0]}:${partes[1]}`;
+  };
+  if (inicio && fim) return `${fmt(inicio)} – ${fmt(fim)}`;
+  return fmt(inicio) || fmt(fim);
 }
 
 // ── Agrupa linhas do banco por nome do serviço (sem duplicatas) ───────────
@@ -73,14 +89,14 @@ function agruparPorServico(dados = []) {
       };
     }
 
-    // Chave única por entrada: servico + dia + horário
-    const chaveEntrada = `${row.dia_semana}|${row.horario}`;
+    // Chave única por entrada: servico + dia + horário de início
+    const chaveEntrada = `${row.dia_semana}|${row.horario_inicio}`;
     if (!mapa[chaveServico]._entradasSet.has(chaveEntrada)) {
       mapa[chaveServico]._entradasSet.add(chaveEntrada);
       mapa[chaveServico].entradas.push({
-        dia_semana: row.dia_semana,
-        horario: formatarHorario(row.horario),
-        observacao: row.observacao,
+        dia_semana:    row.dia_semana,
+        horario:       formatarIntervalo(row.horario_inicio, row.horario_fim),
+        observacao:    row.observacao,
       });
     }
   });

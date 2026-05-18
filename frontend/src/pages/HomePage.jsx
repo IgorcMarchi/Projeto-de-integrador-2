@@ -4,8 +4,6 @@
 // Mapa real MapTiler usando o SDK instalado via npm.
 // -------------------------------------------------------
 
-import { supabase } from "../api/supabaseClient";
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Map, MapStyle, Marker, Popup, config } from '@maptiler/sdk';
 import '@maptiler/sdk/dist/maptiler-sdk.css';
@@ -17,29 +15,26 @@ const SANTA_HELENA = { lng: -54.3308, lat: -24.8596 };
 
 // ── Dados mock ────────────────────────────────────────────
 const PONTOS_MOCK = [
-  { id: 1, nome: 'Sr Zé Guilherme', endereco: 'Rua Tadandan, 120', categoria: 'distribuidora', lat: -24.8580, lng: -54.3290 },
-  { id: 2, nome: 'Sr João Ricardo', endereco: 'Rua Tadandan, 340', categoria: 'distribuidora', lat: -24.8595, lng: -54.3310 },
-  { id: 3, nome: 'Sr Zé Luís',      endereco: 'Rua Tadandan, 210', categoria: 'mercado',       lat: -24.8610, lng: -54.3325 },
-  { id: 4, nome: 'Sr Zé Felipe',    endereco: 'Rua Tadandan, 80',  categoria: 'loja',          lat: -24.8570, lng: -54.3300 },
-  { id: 5, nome: 'Sra Clotilde',    endereco: 'Rua Tadandan, 450', categoria: 'distribuidora', lat: -24.8600, lng: -54.3280 },
-  { id: 6, nome: 'Quiosque 10',     endereco: 'Prainha – Setor A', categoria: 'quiosque',      lat: -24.8560, lng: -54.3340 },
-  { id: 7, nome: 'Quiosque 15',     endereco: 'Prainha – Setor B', categoria: 'quiosque',      lat: -24.8555, lng: -54.3355 },
-  { id: 8, nome: 'Mercado Central', endereco: 'Av. Principal, 500',categoria: 'mercado',       lat: -24.8620, lng: -54.3315 },
+  { id: 1, nome: 'Quiosque 01',          tipo: 'quiosque',    latitude: -24.8580, longitude: -54.3290, disponivel: true  },
+  { id: 2, nome: 'Quiosque 02',          tipo: 'quiosque',    latitude: -24.8595, longitude: -54.3310, disponivel: false },
+  { id: 3, nome: 'Posto de Salvamento',  tipo: 'seguranca',   latitude: -24.8610, longitude: -54.3325, disponivel: true  },
+  { id: 4, nome: 'Banheiro Setor A',     tipo: 'banheiro',    latitude: -24.8570, longitude: -54.3300, disponivel: true  },
+  { id: 5, nome: 'Praça de Alimentação', tipo: 'alimentacao', latitude: -24.8600, longitude: -54.3280, disponivel: true  },
 ];
 
 // ── Categorias ────────────────────────────────────────────
 const CATEGORIAS = [
-  { label: 'Distribuidora', valor: 'distribuidora', cor: '#ff6b6b' },
-  { label: 'Mercado',       valor: 'mercado',       cor: '#ffd166' },
-  { label: 'Loja',          valor: 'loja',          cor: '#06d6a0' },
-  { label: 'Quiosque',      valor: 'quiosque',      cor: '#0096c7' },
+  { label: 'Quiosque',     valor: 'quiosque',    cor: '#0096c7' },
+  { label: 'Segurança',    valor: 'seguranca',   cor: '#ef476f' },
+  { label: 'Banheiro',     valor: 'banheiro',    cor: '#ffd166' },
+  { label: 'Alimentação',  valor: 'alimentacao', cor: '#06d6a0' },
 ];
 
 const EMOJI_CAT = {
-  distribuidora: '🏪',
-  mercado:       '🛒',
-  loja:          '🏬',
-  quiosque:      '⛱️',
+  quiosque:    '⛱️',
+  seguranca:   '🛟',
+  banheiro:    '🚿',
+  alimentacao: '🍽️',
 };
 
 // ── Componente do Mapa ────────────────────────────────────
@@ -103,13 +98,13 @@ function MapaTiler({ pontos, categoriaAtiva, onSelecionarPonto }) {
     markersRef.current = [];
 
     const filtrados = filtro
-      ? listaPontos.filter((p) => p.categoria === filtro)
+      ? listaPontos.filter((p) => p.tipo === filtro)
       : listaPontos;
 
     filtrados.forEach((ponto) => {
-      if (!ponto.lat || !ponto.lng) return;
+      if (!ponto.latitude || !ponto.longitude) return;
 
-      const cfg = CATEGORIAS.find((c) => c.valor === ponto.categoria);
+      const cfg = CATEGORIAS.find((c) => c.valor === ponto.tipo);
       const cor = cfg?.cor || '#888';
 
       // Elemento visual do pin
@@ -126,21 +121,22 @@ function MapaTiler({ pontos, categoriaAtiva, onSelecionarPonto }) {
           cursor:pointer;
         ">
           <span style="transform:rotate(45deg);font-size:14px">
-            ${EMOJI_CAT[ponto.categoria] || '📍'}
+            ${EMOJI_CAT[ponto.tipo] || '📍'}
           </span>
         </div>
       `;
 
+      const dispLabel = ponto.disponivel === false ? ' (indisponível)' : '';
       const popup = new Popup({ offset: 30, closeButton: false })
         .setHTML(`
           <div style="font-family:sans-serif;padding:6px 8px;min-width:120px">
-            <strong style="font-size:13px;color:#1e293b">${ponto.nome}</strong>
-            <p style="font-size:11px;color:#64748b;margin:4px 0 0">${ponto.endereco}</p>
+            <strong style="font-size:13px;color:#1e293b">${ponto.nome}${dispLabel}</strong>
+            <p style="font-size:11px;color:#64748b;margin:4px 0 0">${cfg?.label || ponto.tipo}</p>
           </div>
         `);
 
       const marker = new Marker({ element: el })
-        .setLngLat([ponto.lng, ponto.lat])
+        .setLngLat([ponto.longitude, ponto.latitude])
         .setPopup(popup)
         .addTo(mapa);
 
@@ -162,7 +158,7 @@ function MapaTiler({ pontos, categoriaAtiva, onSelecionarPonto }) {
 
 // ── Card de ponto ─────────────────────────────────────────
 function CardPonto({ ponto, selecionado }) {
-  const cfg = CATEGORIAS.find((c) => c.valor === ponto.categoria);
+  const cfg = CATEGORIAS.find((c) => c.valor === ponto.tipo);
   return (
     <div style={{
       ...styles.cardPonto,
@@ -170,11 +166,11 @@ function CardPonto({ ponto, selecionado }) {
       backgroundColor: selecionado ? '#f0faff' : '#ffffff',
     }}>
       <div style={{ ...styles.cardIcone, backgroundColor: (cfg?.cor || '#888') + '22' }}>
-        <span style={{ fontSize: 20 }}>{EMOJI_CAT[ponto.categoria] || '📍'}</span>
+        <span style={{ fontSize: 20 }}>{EMOJI_CAT[ponto.tipo] || '📍'}</span>
       </div>
       <div style={styles.cardTexto}>
         <p style={styles.cardNome}>{ponto.nome}</p>
-        <p style={styles.cardEndereco}>{ponto.endereco}</p>
+        <p style={styles.cardEndereco}>{cfg?.label || ponto.tipo}{ponto.disponivel === false ? ' · Indisponível' : ''}</p>
       </div>
       <div style={{ ...styles.cardBotaoLoc, borderColor: cfg?.cor || '#0096c7' }}>
         <span style={{ color: cfg?.cor || '#0096c7', fontSize: 18 }}>⊙</span>
@@ -191,17 +187,6 @@ export default function HomePage() {
   const [pontoSelecionado, setPontoSelecionado] = useState(null);
 
   useEffect(() => {
-
-    async function testarSupabase() {
-
-      const { data, error } = await supabase
-        .from("eventos")
-        .select("*");
-
-      console.log("EVENTOS:", data);
-      console.log("ERRO:", error);
-    }
-
     async function carregar() {
       try {
         const dados = await buscarPontosMapa();
@@ -213,13 +198,11 @@ export default function HomePage() {
       }
     }
 
-    testarSupabase();
     carregar();
-
   }, []);
 
   const pontosFiltrados = categoriaAtiva
-    ? pontos.filter((p) => p.categoria === categoriaAtiva)
+    ? pontos.filter((p) => p.tipo === categoriaAtiva)
     : pontos;
 
   return (

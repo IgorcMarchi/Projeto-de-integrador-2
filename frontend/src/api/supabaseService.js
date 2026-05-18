@@ -88,18 +88,18 @@ export async function marcarComoLida(id) {
 }
 
 // ══════════════════════════════════════════════════════
-//  PONTOS DO MAPA (Quiosques, Lojas, etc.)
+//  PONTOS DO MAPA (Quiosques, Segurança, etc.)
 // ══════════════════════════════════════════════════════
 
 /**
- * Busca todos os pontos do mapa, com filtro opcional por categoria.
- * @param {string|null} categoria - 'quiosque' | 'distribuidora' | 'loja' | null (todos)
+ * Busca pontos da prainha, com filtro opcional por tipo.
+ * @param {string|null} tipo - 'quiosque' | 'seguranca' | 'banheiro' | 'alimentacao' | null (todos)
  */
-export async function buscarPontosMapa(categoria = null) {
-  let query = supabase.from('pontos_mapa').select('*').order('nome');
+export async function buscarPontosMapa(tipo = null) {
+  let query = supabase.from('locais_prainha').select('*').order('nome');
 
-  if (categoria) {
-    query = query.eq('categoria', categoria);
+  if (tipo) {
+    query = query.eq('tipo', tipo);
   }
 
   const { data, error } = await query;
@@ -123,14 +123,17 @@ export async function salvarReporte(reporte) {
   const { data: { user } } = await supabase.auth.getUser();
 
   const payload = {
-    ...reporte,
-    // Se for anônimo, não vincula ao usuário
-    user_id: reporte.anonimo ? null : (user?.id ?? null),
-    status: 'aberto',
+    categoria: reporte.tipo,
+    descricao: reporte.descricao,
+    latitude:  reporte.lat,
+    longitude: reporte.lng,
+    foto_url:  reporte.foto_url,
+    user_id:   reporte.anonimo ? null : (user?.id ?? null),
+    status:    'aberto',
   };
 
   const { data, error } = await supabase
-    .from('reportes')
+    .from('incidentes')
     .insert([payload])
     .select()
     .single();
