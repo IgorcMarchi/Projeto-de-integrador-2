@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#023e8a" />
+    <meta
+      name="description"
+      content="ConectaSH – O futuro de Santa Helena na palma da mão"
+    />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <style>
+      /* Garante que o mapa MapTiler ocupe 100% do container */
+      .maplibregl-map,
+      .maptiler-map,
+      .maplibregl-canvas {
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      /* Remove margin padrão do body */
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+    </style>
+
+    <title>ConectaSH</title>
+  </head>
+  <body>
+    <noscript>Você precisa habilitar o JavaScript para rodar este app.</noscript>
+    <div id="root"></div>
+  </body>
+</html>
