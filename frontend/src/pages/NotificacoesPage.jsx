@@ -105,9 +105,9 @@ export default function NotificacoesPage() {
     async function carregar() {
       try {
         const dados = await buscarNotificacoes();
-        setNotificacoes(dados.length > 0 ? dados : NOTIFICACOES_MOCK);
+        setNotificacoes(dados || []);
       } catch {
-        setNotificacoes(NOTIFICACOES_MOCK);
+        setNotificacoes([]);
       } finally {
         setCarregando(false);
       }
@@ -143,7 +143,8 @@ export default function NotificacoesPage() {
       ) : notificacoes.length === 0 ? (
         <div style={styles.vazio}>
           <span style={{ fontSize: 48 }}>🔔</span>
-          <p>Nenhuma notificação ainda.</p>
+          <p style={styles.vazioTitulo}>Você não tem notificações no momento</p>
+          <p style={styles.vazioSubtitulo}>Volte mais tarde para verificar novidades!</p>
         </div>
       ) : (
         <div style={styles.lista}>
@@ -274,5 +275,16 @@ const styles = {
     marginTop: 60,
     color: '#94a3b8',
     fontSize: 14,
+  },
+  vazioTitulo: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1e293b',
+    margin: 0,
+  },
+  vazioSubtitulo: {
+    fontSize: 13,
+    color: '#94a3b8',
+    margin: 0,
   },
 };
