@@ -1,9 +1,11 @@
 // src/components/layout/TopBar.jsx
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { supabase } from '../../api/supabaseClient';
 
 export default function TopBar({ usuario }) {
+  const navigate = useNavigate();
   const [menuAberto, setMenuAberto] = useState(false);
   const [nomeUsuario, setNomeUsuario] = useState('');
 
@@ -23,6 +25,32 @@ export default function TopBar({ usuario }) {
       });
   }, [usuario]);
 
+  // Escuta mudanças no perfil em tempo real
+  useEffect(() => {
+    if (!usuario) return;
+
+    const subscription = supabase
+      .channel(`profiles:${usuario.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'profiles',
+        filter: `id=eq.${usuario.id}`
+      }, (payload) => {
+        const novoNome = payload.new.nome_completo?.split(' ')[0] || nomeUsuario;
+        setNomeUsuario(novoNome);
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [usuario]);
+
+  const irParaPerfil = () => {
+    navigate('/perfil');
+  };
+
   return (
     <>
       <header style={styles.header}>
@@ -32,10 +60,8 @@ export default function TopBar({ usuario }) {
 
         <span style={styles.logo}>Conecta SH</span>
 
-        <button style={styles.botaoUsuario} onClick={async () => {
-          await supabase.auth.signOut();
-        }}>
-          {nomeUsuario || '👤'}
+        <button style={styles.botaoUsuario} onClick={irParaPerfil} title="Clique para editar seu perfil">
+          👤 {nomeUsuario}
         </button>
       </header>
 

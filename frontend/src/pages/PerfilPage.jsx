@@ -62,6 +62,21 @@ export default function PerfilPage() {
     setSalvando(true);
     setMensagem('');
 
+    if (!formData.nome_completo || formData.nome_completo.trim() === '') {
+      setMensagem('✗ Nome completo é obrigatório');
+      setSalvando(false);
+      return;
+    }
+
+    if (formData.telefone && formData.telefone.trim() !== '') {
+      const telefoneLimpo = formData.telefone.replace(/\D/g, '');
+      if (!/^\d{10,11}$/.test(telefoneLimpo)) {
+        setMensagem('✗ Telefone inválido. Use o formato (XX) 9XXXX-XXXX ou (XX) XXXX-XXXX');
+        setSalvando(false);
+        return;
+      }
+    }
+
     console.log('Salvando perfil:', formData);
 
     try {
@@ -100,12 +115,12 @@ export default function PerfilPage() {
 
   return (
     <div style={styles.pagina}>
-      <h1 style={styles.titulo}>MEU PERFIL</h1>
+      <h1 style={styles.titulo}>👤 MEU PERFIL</h1>
 
       <form style={styles.formulario} onSubmit={handleSalvar}>
         {/* Nome Completo */}
         <div style={styles.grupo}>
-          <label style={styles.label}>Nome Completo</label>
+          <label style={styles.label}>Nome Completo *</label>
           <input
             type="text"
             name="nome_completo"
@@ -113,6 +128,7 @@ export default function PerfilPage() {
             onChange={handleChange}
             style={styles.input}
             placeholder="Digite seu nome completo"
+            required
           />
         </div>
 
@@ -154,10 +170,9 @@ export default function PerfilPage() {
             style={styles.input}
           >
             <option value="">Selecione um tipo</option>
-            <option value="visitante">Visitante</option>
-            <option value="residente">Residente</option>
-            <option value="prestador">Prestador de Serviço</option>
-            <option value="administrador">Administrador</option>
+            <option value="turista">Turista</option>
+            <option value="morador">Morador</option>
+            <option value="admin">Administrador</option>
           </select>
         </div>
 
@@ -171,10 +186,10 @@ export default function PerfilPage() {
             style={styles.input}
           >
             <option value="">Selecione um gênero</option>
-            <option value="masculino">Masculino</option>
-            <option value="feminino">Feminino</option>
-            <option value="outro">Outro</option>
-            <option value="prefiro_nao_informar">Prefiro não informar</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Feminino">Feminino</option>
+            <option value="Outro">Outro</option>
+            <option value="Prefiro não informar">Prefiro não informar</option>
           </select>
         </div>
 

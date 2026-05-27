@@ -50,9 +50,10 @@ const NOTIFICACOES_MOCK = [
 
 // ── Cores e ícones por tipo ───────────────────────────────
 const CONFIG_TIPO = {
-  evento:  { cor: '#0096c7', fundo: '#e0f4ff', icone: '🎫' },
-  reporte: { cor: '#ef476f', fundo: '#ffeef2', icone: '🚩' },
-  sistema: { cor: '#06d6a0', fundo: '#e0fff7', icone: '🔔' },
+  evento:   { cor: '#0096c7', fundo: '#e0f4ff', icone: '🎫' },
+  reporte:  { cor: '#ef476f', fundo: '#ffeef2', icone: '🚩' },
+  servico:  { cor: '#06d6a0', fundo: '#e0fff7', icone: '🔔' },
+  alerta:   { cor: '#ff6b6b', fundo: '#ffe0e0', icone: '⚠️' },
 };
 
 // ── Formata data para "há X min / h / dias" ───────────────
