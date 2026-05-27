@@ -165,3 +165,78 @@ export async function loginComEmail(email, senha) {
 export async function logout() {
   await supabase.auth.signOut();
 }
+
+// ══════════════════════════════════════════════════════
+//  PERFIL
+// ══════════════════════════════════════════════════════
+
+/**
+ * Busca o perfil completo do usuário logado.
+ * Retorna um objeto com dados pessoais.
+ */
+export async function buscarPerfil() {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  if (error) {
+    console.error('Erro ao buscar perfil:', error.message);
+    return null;
+  }
+  return data;
+}
+
+/**
+ * Atualiza o perfil do usuário logado.
+ * @param {object} dados - { nome_completo, email, telefone, genero, avatar_url, tipo_usuario }
+ * @returns {object} { sucesso: boolean, erro?: string }
+ */
+export async function atualizarPerfil(dados) {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { sucesso: false, erro: 'Usuário não autenticado' };
+  }
+
+  // Tipos válidos no banco: morador, turista, admin
+  const tiposValidos = ['morador', 'turista', 'admin'];
+  const tipoNormalizado = dados.tipo_usuario ? dados.tipo_usuario.toLowerCase().trim() : null;
+  
+  if (tipoNormalizado && !tiposValidos.includes(tipoNormalizado)) {
+    return { sucesso: false, erro: 'Tipo de usuário inválido' };
+  }
+
+  // Gêneros válidos no banco: Masculino, Feminino, Outro, Prefiro não informar
+  const generosValidos = ['Masculino', 'Feminino', 'Outro', 'Prefiro não informar'];
+  const generoNormalizado = dados.genero ? dados.genero.trim() : null;
+  
+  if (generoNormalizado && !generosValidos.includes(generoNormalizado)) {
+    return { sucesso: false, erro: 'Gênero inválido' };
+  }
+
+  const payload = {
+    nome_completo: dados.nome_completo || null,
+    telefone: dados.telefone || null,
+    genero: generoNormalizado || null,
+    avatar_url: dados.avatar_url || null,
+    tipo_usuario: tipoNormalizado || null,
+  };
+
+  const { error } = await supabase
+    .from('profiles')
+    .update(payload)
+    .eq('id', user.id);
+
+  if (error) {
+    console.error('Erro ao atualizar perfil:', error.message);
+    return { sucesso: false, erro: error.message };
+  }
+
+  return { sucesso: true };
+}
