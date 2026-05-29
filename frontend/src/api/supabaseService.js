@@ -154,6 +154,39 @@ export async function salvarReporte(reporte) {
   return { sucesso: true };
 }
 
+/**
+ * Envia uma foto para o storage do Supabase no bucket `reportes`.
+ * Retorna { sucesso: boolean, url?: string, erro?: string }
+ */
+export async function uploadFoto(file) {
+  if (!file) return { sucesso: false, erro: 'Nenhum arquivo fornecido' };
+
+  const ext = file.name.split('.').pop();
+  const fileName = `reportes/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+
+  const { error: uploadError } = await supabase
+    .storage
+    .from('reportes')
+    .upload(fileName, file, { cacheControl: '3600', upsert: false });
+
+  if (uploadError) {
+    console.error('Erro ao enviar foto para storage:', uploadError.message);
+    return { sucesso: false, erro: uploadError.message };
+  }
+
+  const { data: publicData, error: publicError } = await supabase
+    .storage
+    .from('reportes')
+    .getPublicUrl(fileName);
+
+  if (publicError) {
+    console.error('Erro ao obter URL pública:', publicError.message);
+    return { sucesso: false, erro: publicError.message };
+  }
+
+  return { sucesso: true, url: publicData.publicUrl };
+}
+
 // ══════════════════════════════════════════════════════
 //  AUTENTICAÇÃO
 // ══════════════════════════════════════════════════════

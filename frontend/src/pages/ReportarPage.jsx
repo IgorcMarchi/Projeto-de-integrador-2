@@ -6,8 +6,8 @@
 // localização, foto opcional e envio anônimo.
 // -------------------------------------------------------
 
-import React, { useState } from 'react';
-import { salvarReporte } from '../api/supabaseService';
+import React, { useState, useRef } from 'react';
+import { salvarReporte, uploadFoto } from '../api/supabaseService';
 
 // ── Tipos de problema ─────────────────────────────────────
 const TIPOS = [
@@ -45,6 +45,9 @@ export default function ReportarPage() {
   const [enviando, setEnviando]               = useState(false);
   const [enviado, setEnviado]                 = useState(false);
   const [erro, setErro]                       = useState('');
+  const [arquivo, setArquivo]                 = useState(null);
+  const [previewUrl, setPreviewUrl]           = useState(null);
+  const fileInputRef = useRef(null);
 
   async function handleEnviar() {
     if (!descricao.trim()) {
@@ -55,13 +58,25 @@ export default function ReportarPage() {
     setErro('');
     setEnviando(true);
 
+    // Se houver arquivo selecionado, envie-o primeiro para o storage
+    let fotoUrl = null;
+    if (arquivo) {
+      const uploadRes = await uploadFoto(arquivo);
+      if (!uploadRes.sucesso) {
+        setErro(uploadRes.erro ?? 'Erro ao enviar a foto');
+        setEnviando(false);
+        return;
+      }
+      fotoUrl = uploadRes.url;
+    }
+
     const resultado = await salvarReporte({
       tipo:      tipoSelecionado,
       descricao: descricao.trim(),
       anonimo,
       lat:       null, // futura integração com GPS
       lng:       null,
-      foto_url:  null, // futura integração com câmera
+      foto_url:  fotoUrl,
     });
 
     setEnviando(false);
@@ -79,6 +94,23 @@ export default function ReportarPage() {
     setAnonimo(false);
     setEnviado(false);
     setErro('');
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+    setArquivo(null);
+  }
+
+  function handleFileChange(e) {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setArquivo(f);
+    setPreviewUrl(URL.createObjectURL(f));
+  }
+
+  function onFotoClick() {
+    fileInputRef.current?.click();
   }
 
   // ── Tela de sucesso ──
@@ -144,9 +176,22 @@ export default function ReportarPage() {
 
         {/* Foto opcional */}
         <p style={styles.label}>ADICIONAR FOTO (Opcional)</p>
-        <button style={styles.botaoFoto}>
-          <span style={styles.fotoIcone}>📷</span>
-          <span style={styles.fotoTexto}>TOQUE PARA TIRAR FOTO</span>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={handleFileChange}
+        />
+        <button style={styles.botaoFoto} onClick={onFotoClick} type="button">
+          {previewUrl ? (
+            <img src={previewUrl} alt="preview" style={{ width: '100%', borderRadius: 8 }} />
+          ) : (
+            <>
+              <span style={styles.fotoIcone}>📷</span>
+              <span style={styles.fotoTexto}>SELECIONAR FOTO</span>
+            </>
+          )}
         </button>
 
         {/* Envio anônimo */}
