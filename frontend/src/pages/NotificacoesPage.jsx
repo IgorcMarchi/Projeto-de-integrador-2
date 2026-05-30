@@ -50,9 +50,10 @@ const NOTIFICACOES_MOCK = [
 
 // ── Cores e ícones por tipo ───────────────────────────────
 const CONFIG_TIPO = {
-  evento:  { cor: '#0096c7', fundo: '#e0f4ff', icone: '🎫' },
-  reporte: { cor: '#ef476f', fundo: '#ffeef2', icone: '🚩' },
-  sistema: { cor: '#06d6a0', fundo: '#e0fff7', icone: '🔔' },
+  evento:   { cor: '#0096c7', fundo: '#e0f4ff', icone: '🎫' },
+  reporte:  { cor: '#ef476f', fundo: '#ffeef2', icone: '🚩' },
+  servico:  { cor: '#06d6a0', fundo: '#e0fff7', icone: '🔔' },
+  alerta:   { cor: '#ff6b6b', fundo: '#ffe0e0', icone: '⚠️' },
 };
 
 // ── Formata data para "há X min / h / dias" ───────────────
@@ -105,9 +106,9 @@ export default function NotificacoesPage() {
     async function carregar() {
       try {
         const dados = await buscarNotificacoes();
-        setNotificacoes(dados.length > 0 ? dados : NOTIFICACOES_MOCK);
+        setNotificacoes(dados || []);
       } catch {
-        setNotificacoes(NOTIFICACOES_MOCK);
+        setNotificacoes([]);
       } finally {
         setCarregando(false);
       }
@@ -143,7 +144,8 @@ export default function NotificacoesPage() {
       ) : notificacoes.length === 0 ? (
         <div style={styles.vazio}>
           <span style={{ fontSize: 48 }}>🔔</span>
-          <p>Nenhuma notificação ainda.</p>
+          <p style={styles.vazioTitulo}>Você não tem notificações no momento</p>
+          <p style={styles.vazioSubtitulo}>Volte mais tarde para verificar novidades!</p>
         </div>
       ) : (
         <div style={styles.lista}>
@@ -274,5 +276,16 @@ const styles = {
     marginTop: 60,
     color: '#94a3b8',
     fontSize: 14,
+  },
+  vazioTitulo: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1e293b',
+    margin: 0,
+  },
+  vazioSubtitulo: {
+    fontSize: 13,
+    color: '#94a3b8',
+    margin: 0,
   },
 };

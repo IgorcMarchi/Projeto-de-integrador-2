@@ -12,6 +12,7 @@ import LoginPage        from './pages/LoginPage';
 import HomePage         from './pages/HomePage';
 import EventosPage      from './pages/EventosPage';
 import HorariosPage     from './pages/HorariosPage';
+import PerfilPage       from './pages/PerfilPage';
 import NotificacoesPage from './pages/NotificacoesPage';
 import ReportarPage     from './pages/ReportarPage';
 import SugestoesPage    from './pages/SugestoesPage';
@@ -53,6 +54,7 @@ export default function App() {
               <Route path="/"         element={<HomePage />} />
               <Route path="/eventos"  element={<EventosPage />} />
               <Route path="/horarios" element={<HorariosPage />} />
+              <Route path="/perfil"   element={<PerfilPage />} />
 
               {/* Rotas protegidas — exigem login */}
               <Route element={<RotaProtegida usuario={usuario} verificando={verificando} />}>
