@@ -4,7 +4,7 @@
 // Mapa real MapTiler usando o SDK instalado via npm.
 // -------------------------------------------------------
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { Map, MapStyle, Marker, Popup, config } from '@maptiler/sdk';
 import '@maptiler/sdk/dist/maptiler-sdk.css';
 import { buscarPontosMapa } from '../api/supabaseService';
@@ -38,10 +38,16 @@ const EMOJI_CAT = {
 };
 
 // ── Componente do Mapa ────────────────────────────────────
-function MapaTiler({ pontos, categoriaAtiva, onSelecionarPonto }) {
+const MapaTiler = forwardRef(function MapaTiler({ pontos, categoriaAtiva, onSelecionarPonto }, ref) {
   const containerRef = useRef(null);
   const mapaRef      = useRef(null);
   const markersRef   = useRef([]);
+
+  useImperativeHandle(ref, () => ({
+    voarPara(lng, lat) {
+      mapaRef.current?.flyTo({ center: [lng, lat], zoom: 17, duration: 1200 });
+    },
+  }));
 
   // Injeta o CSS do MapTiler no <head> uma única vez
   useEffect(() => {
@@ -154,10 +160,10 @@ function MapaTiler({ pontos, categoriaAtiva, onSelecionarPonto }) {
       <div ref={containerRef} style={styles.mapaContainer} />
     </div>
   );
-}
+});
 
 // ── Card de ponto ─────────────────────────────────────────
-function CardPonto({ ponto, selecionado }) {
+function CardPonto({ ponto, selecionado, onFocar }) {
   const cfg = CATEGORIAS.find((c) => c.valor === ponto.tipo);
   return (
     <div style={{
@@ -172,7 +178,10 @@ function CardPonto({ ponto, selecionado }) {
         <p style={styles.cardNome}>{ponto.nome}</p>
         <p style={styles.cardEndereco}>{cfg?.label || ponto.tipo}{ponto.disponivel === false ? ' · Indisponível' : ''}</p>
       </div>
-      <div style={{ ...styles.cardBotaoLoc, borderColor: cfg?.cor || '#0096c7' }}>
+      <div
+        style={{ ...styles.cardBotaoLoc, borderColor: cfg?.cor || '#0096c7' }}
+        onClick={onFocar}
+      >
         <span style={{ color: cfg?.cor || '#0096c7', fontSize: 18 }}>⊙</span>
       </div>
     </div>
@@ -185,6 +194,7 @@ export default function HomePage() {
   const [carregando, setCarregando]             = useState(true);
   const [categoriaAtiva, setCategoriaAtiva]     = useState(null);
   const [pontoSelecionado, setPontoSelecionado] = useState(null);
+  const mapaRef                                 = useRef(null);
 
   useEffect(() => {
     async function carregar() {
@@ -211,6 +221,7 @@ export default function HomePage() {
 
       {/* Mapa */}
       <MapaTiler
+        ref={mapaRef}
         pontos={pontos}
         categoriaAtiva={categoriaAtiva}
         onSelecionarPonto={setPontoSelecionado}
@@ -245,6 +256,10 @@ export default function HomePage() {
               key={p.id}
               ponto={p}
               selecionado={pontoSelecionado?.id === p.id}
+              onFocar={() => {
+                setPontoSelecionado(p);
+                mapaRef.current?.voarPara(p.longitude, p.latitude);
+              }}
             />
           ))}
           {pontosFiltrados.length === 0 && (
